@@ -2,6 +2,12 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var model: FreeCamModel
+    @ObservedObject private var transport: TransportService
+
+    init(model: FreeCamModel) {
+        self.model = model
+        self._transport = ObservedObject(wrappedValue: model.transport)
+    }
 
     var body: some View {
         ScrollView {
@@ -29,7 +35,7 @@ struct ContentView: View {
                         .buttonStyle(.bordered)
                     }
 
-                    Text(model.transport.statusText)
+                    Text(transport.statusText)
                         .font(.caption)
                 }
 
@@ -47,9 +53,9 @@ struct ContentView: View {
                     .font(.caption.monospacedDigit())
 
                     Text(
-                        "Sent: \(model.transport.sentFrames) frames • " +
-                        "\(model.transport.sentDatagrams) datagrams • " +
-                        "\(model.transport.sendErrors) send errors"
+                        "Sent: \(transport.sentFrames) frames • " +
+                        "\(transport.sentDatagrams) datagrams • " +
+                        "\(transport.sendErrors) send errors"
                     )
                     .font(.caption.monospacedDigit())
                 }
