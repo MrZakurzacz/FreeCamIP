@@ -6,11 +6,11 @@ on:
       tag:
         description: "Release tag"
         required: true
-        default: "v0.0.1-test.1"
+        default: "v0.0.1-test.2"
       source_ref:
         description: "Branch or commit to build"
         required: true
-        default: "main"
+        default: "feature/m0-low-latency-encoder"
   push:
     branches: [main]
     paths:
@@ -23,8 +23,8 @@ jobs:
   publish:
     runs-on: macos-latest
     env:
-      DEFAULT_TAG: v0.0.1-test.1
-      DEFAULT_SOURCE_REF: main
+      DEFAULT_TAG: v0.0.1-test.2
+      DEFAULT_SOURCE_REF: feature/m0-low-latency-encoder
       GH_TOKEN: ${{ github.token }}
 
     steps:
@@ -73,14 +73,12 @@ jobs:
         shell: bash
         run: |
           NOTES=$(cat <<'EOF'
-          FreeCamIP M0 test build.
+          FreeCamIP M0 test.2 build.
 
-          Includes:
-          - AVFoundation camera capture
-          - VideoToolbox H.264 encoding
-          - TCP control handshake
-          - UDP FreeCam video transport
-          - manual Windows PC IP entry
+          Changes since test.1:
+          - H.264 frame reordering disabled
+          - VideoToolbox encoder delay capped to one frame
+          - intended to reduce live camera latency
 
           The IPA is unsigned and must be signed/sideloaded before installation on a physical iPhone.
           EOF
