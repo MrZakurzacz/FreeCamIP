@@ -1,0 +1,33 @@
+name: FreeCamIP
+
+options:
+  bundleIdPrefix: io.github.MrZakurzacz
+  deploymentTarget:
+    iOS: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+
+targets:
+  FreeCamIP:
+    type: application
+    platform: iOS
+    sources:
+      - path: FreeCamIP
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.MrZakurzacz.FreeCamIP
+        TARGETED_DEVICE_FAMILY: "1,2"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    info:
+      path: FreeCamIP/Info.plist
+      properties:
+        CFBundleDisplayName: FreeCam
+        UILaunchScreen: {}
+        NSCameraUsageDescription: FreeCam uses the camera to send video to your Windows PC.
+        NSLocalNetworkUsageDescription: FreeCam uses your local network to send camera video to your Windows PC.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
