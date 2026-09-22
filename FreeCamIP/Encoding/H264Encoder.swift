@@ -56,6 +56,25 @@ final class H264Encoder {
             value: kVTProfileLevel_H264_Baseline_AutoLevel
         )
 
+        VTSessionSetProperty(
+            session,
+            key: kVTCompressionPropertyKey_AllowFrameReordering,
+            value: kCFBooleanFalse
+        )
+
+        var maxFrameDelayCount: Int32 = 1
+        let maxFrameDelayNumber = CFNumberCreate(
+            kCFAllocatorDefault,
+            .sInt32Type,
+            &maxFrameDelayCount
+        )
+
+        VTSessionSetProperty(
+            session,
+            key: kVTCompressionPropertyKey_MaxFrameDelayCount,
+            value: maxFrameDelayNumber
+        )
+
         var fps = framesPerSecond
         let fpsNumber = CFNumberCreate(
             kCFAllocatorDefault,
