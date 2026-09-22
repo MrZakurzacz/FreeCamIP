@@ -16,6 +16,7 @@ final class TransportService: ObservableObject {
     private var controlConnection: NWConnection?
     private var videoConnection: NWConnection?
     private var controlBuffer = ""
+    private var handshakeComplete = false
     private var sequence: UInt32 = 0
     private var frameID: UInt32 = 0
 
@@ -59,6 +60,7 @@ final class TransportService: ObservableObject {
         videoConnection = udp
         controlConnection = tcp
         controlBuffer = ""
+        handshakeComplete = false
 
         udp.stateUpdateHandler = { [weak self] state in
             guard let self else { return }
@@ -79,11 +81,13 @@ final class TransportService: ObservableObject {
                 self.sendHello(deviceName: deviceName)
                 self.receiveControl()
             case .failed(let error):
+                self.handshakeComplete = false
                 self.setStatus(
                     "Connection failed: \(error.localizedDescription)",
                     connected: false
                 )
             case .cancelled:
+                self.handshakeComplete = false
                 self.setStatus("Disconnected", connected: false)
             default:
                 break
@@ -96,6 +100,8 @@ final class TransportService: ObservableObject {
     }
 
     func disconnect() {
+        handshakeComplete = false
+
         controlConnection?.stateUpdateHandler = nil
         videoConnection?.stateUpdateHandler = nil
         controlConnection?.cancel()
@@ -117,7 +123,7 @@ final class TransportService: ObservableObject {
 
         queue.async { [weak self] in
             guard let self,
-                  self.isConnected,
+                  self.handshakeComplete,
                   let videoConnection = self.videoConnection else {
                 return
             }
@@ -181,17 +187,23 @@ final class TransportService: ObservableObject {
     private func sendHello(deviceName: String) {
         guard let controlConnection else { return }
 
-        let safeDeviceName = deviceName
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: """, with: "\\"")
+        let message: [String: Any] = [
+            "type": "hello",
+            "protocol": 0,
+            "deviceName": deviceName
+        ]
 
-        let line =
-            "{\"type\":\"hello\",\"protocol\":0,\"deviceName\":\"" +
-            safeDeviceName +
-            "\"}\n"
+        guard var payload = try? JSONSerialization.data(
+            withJSONObject: message
+        ) else {
+            setStatus("Could not create handshake", connected: false)
+            return
+        }
+
+        payload.append(0x0A)
 
         controlConnection.send(
-            content: Data(line.utf8),
+            content: payload,
             completion: .contentProcessed { [weak self] error in
                 if let error {
                     self?.setStatus(
@@ -225,6 +237,7 @@ final class TransportService: ObservableObject {
             }
 
             if let error {
+                self.handshakeComplete = false
                 self.setStatus(
                     "Control connection lost: \(error.localizedDescription)",
                     connected: false
@@ -233,6 +246,7 @@ final class TransportService: ObservableObject {
             }
 
             if isComplete {
+                self.handshakeComplete = false
                 self.setStatus("PC disconnected", connected: false)
                 return
             }
@@ -252,6 +266,7 @@ final class TransportService: ObservableObject {
 
             if line.contains("\"type\":\"hello_ack\""),
                line.contains("\"protocol\":0") {
+                handshakeComplete = true
                 setStatus("Connected", connected: true)
             }
         }
