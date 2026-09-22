@@ -4,37 +4,69 @@ struct ContentView: View {
     @ObservedObject var model: FreeCamModel
 
     var body: some View {
-        VStack(spacing: 16) {
-            CameraPreview(session: model.camera.session)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-                .aspectRatio(16.0 / 9.0, contentMode: .fit)
+        ScrollView {
+            VStack(spacing: 16) {
+                CameraPreview(session: model.camera.session)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .aspectRatio(16.0 / 9.0, contentMode: .fit)
 
-            VStack(spacing: 6) {
-                Text(model.camera.statusText)
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField("PC IPv4 address", text: $model.pcAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.numbersAndPunctuation)
+                        .textFieldStyle(.roundedBorder)
 
-                Text("Encoded frames: \(model.encodedFrames)")
+                    HStack {
+                        Button("Connect") {
+                            model.connect()
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Button("Disconnect") {
+                            model.disconnect()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+
+                    Text(model.transport.statusText)
+                        .font(.caption)
+                }
+
+                VStack(spacing: 6) {
+                    Text(model.camera.statusText)
+                        .font(.headline)
+
+                    Text("Encoded frames: \(model.encodedFrames)")
+                        .font(.caption.monospacedDigit())
+
+                    Text(
+                        "Last access unit: \(model.lastAccessUnitBytes) bytes" +
+                        (model.lastFrameWasKeyFrame ? " • keyframe" : "")
+                    )
                     .font(.caption.monospacedDigit())
 
-                Text(
-                    "Last access unit: \(model.lastAccessUnitBytes) bytes" +
-                    (model.lastFrameWasKeyFrame ? " • keyframe" : "")
-                )
-                .font(.caption.monospacedDigit())
-            }
-
-            HStack {
-                Button("Start") {
-                    model.start()
+                    Text(
+                        "Sent: \(model.transport.sentFrames) frames • " +
+                        "\(model.transport.sentDatagrams) datagrams • " +
+                        "\(model.transport.sendErrors) send errors"
+                    )
+                    .font(.caption.monospacedDigit())
                 }
-                .buttonStyle(.borderedProminent)
 
-                Button("Stop") {
-                    model.stop()
+                HStack {
+                    Button("Start Camera") {
+                        model.start()
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button("Stop Camera") {
+                        model.stop()
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
             }
+            .padding()
         }
-        .padding()
     }
 }
